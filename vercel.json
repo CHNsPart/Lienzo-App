@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "KINDE_ISSUER_URL": "https://lienzo.kinde.com",
+    "KINDE_SITE_URL": "https://lienzo-app.vercel.app",
+    "KINDE_POST_LOGOUT_REDIRECT_URL": "https://lienzo-app.vercel.app",
+    "KINDE_POST_LOGIN_REDIRECT_URL": "https://lienzo-app.vercel.app/dashboard"
+  }
+}
