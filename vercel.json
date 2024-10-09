@@ -7,8 +7,8 @@
     }
   ],
   "functions": {
-    "api/**/*.ts": {
-      "memory": 1024
+    "api/auth/**/*.ts": {
+      "maxDuration": 30
     }
   }
 }
