@@ -10,6 +10,7 @@ import { License, Product, User } from "@prisma/client";
 
 type LicenseWithProduct = License & { product: Product };
 
+
 async function syncUser(kindeUser: any): Promise<User> {
   const existingUser = await prisma.user.findUnique({
     where: { email: kindeUser.email },
