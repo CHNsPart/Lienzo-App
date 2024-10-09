@@ -10,13 +10,19 @@ export const prisma =
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma */
 
-// lib/prisma.ts
 import { PrismaClient } from '@prisma/client'
+import { join } from 'path'
 
 let prisma: PrismaClient
 
 if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient()
+  prisma = new PrismaClient({
+    datasources: {
+      db: {
+        url: `file:${join(process.cwd(), 'prisma', 'dev.db')}`,
+      },
+    },
+  })
 } else {
   if (!(global as any).prisma) {
     (global as any).prisma = new PrismaClient()

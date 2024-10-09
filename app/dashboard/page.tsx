@@ -11,7 +11,7 @@ import { License, Product, User } from "@prisma/client";
 type LicenseWithProduct = License & { product: Product };
 
 
-async function syncUser(kindeUser: any): Promise<User> {
+async function syncUser(kindeUser: any): Promise<User | null> {
   const existingUser = await prisma.user.findUnique({
     where: { email: kindeUser.email },
   });
@@ -45,7 +45,7 @@ export default async function DashboardPage() {
     redirect("/api/auth/login");
   }
 
-  let user;
+  let user: User | null = null;
   let licenses: LicenseWithProduct[] = [];
   try {
     // Sync user data
