@@ -37,15 +37,21 @@ async function syncUser(kindeUser: any): Promise<User> {
 }
 
 export default async function DashboardPage() {
-  const { getUser } = getKindeServerSession();
+  /* const { getUser } = getKindeServerSession();
   const kindeUser = await getUser();
 
   if (!kindeUser || !kindeUser.email) {
     redirect("/api/auth/login");
+  } */
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user || !user.email) {
+    redirect("/api/auth/login");
   }
 
   // Sync user data
-  const user = await syncUser(kindeUser);
+  /* const user = await syncUser(kindeUser); */
 
   const licenses: LicenseWithProduct[] = await prisma.license.findMany({
     where: { ownerId: user.id },
