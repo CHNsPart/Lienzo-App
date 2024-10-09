@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String           @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String           @unique
+  phoneNumber     String?
+  role            String           @default("USER")
+  newUser         Boolean          @default(true)
+  licenses        License[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  licenseRequests LicenseRequest[]
+  permissions     UserPermission[]
+}
+
+model License {
+  id         String   @id @default(cuid())
+  key        String   @unique
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+  owner      User     @relation(fields: [ownerId], references: [id])
+  ownerId    String
+  duration   Int
+  startDate  DateTime
+  expiryDate DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  request    LicenseRequest @relation(fields: [requestId], references: [id])
+  requestId  String
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  features    String
+  image       Bytes?
+  durations   String
+  licenses    License[]
+  licenseRequests LicenseRequest[]
+}
+
+model LicenseRequest {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  product     Product  @relation(fields: [productId], references: [id])
+  productId   String
+  quantity    Int
+  duration    Int
+  message     String?
+  companyName String
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  licenses    License[]
+}
+
+model Permission {
+  id              String           @id @default(cuid())
+  name            String           @unique
+  description     String?
+  rolePermissions RolePermission[]
+  userPermissions UserPermission[]
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  role         String
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  permissionId String
+
+  @@unique([role, permissionId])
+}
+
+model UserPermission {
+  id           String     @id @default(cuid())
+  user         User       @relation(fields: [userId], references: [id])
+  userId       String
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  permissionId String
+
+  @@unique([userId, permissionId])
+}
