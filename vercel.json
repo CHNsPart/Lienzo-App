@@ -7,9 +7,16 @@
     }
   ],
   "env": {
+    "KINDE_CLIENT_ID":"b94e224992ce421989cf62d5563b2515",
+    "KINDE_CLIENT_SECRET":"hGh60vGxm3xAvAHuwTkhu1vL2l4m7lDQrPu5jhHTJElIlD9w92",
     "KINDE_ISSUER_URL": "https://lienzo.kinde.com",
     "KINDE_SITE_URL": "https://lienzo-app.vercel.app",
     "KINDE_POST_LOGOUT_REDIRECT_URL": "https://lienzo-app.vercel.app",
     "KINDE_POST_LOGIN_REDIRECT_URL": "https://lienzo-app.vercel.app/dashboard"
+  },
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 60
+    }
   }
 }
