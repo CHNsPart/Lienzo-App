@@ -1,74 +1,25 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import HighlightedDetailsCard from "@/components/dashboard/HighlightedDetailsCard";
-/* import dynamic from 'next/dynamic'; */
-import prisma from "@/lib/prisma";
-/* import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types"; */
-import { License, Product, User } from "@prisma/client";
-
-/* const LicenseCard = dynamic(() => import('@/components/dashboard/LicenseCard'), { ssr: false }); */
-
-type LicenseWithProduct = License & { product: Product };
-
-async function syncUser(kindeUser: any): Promise<User> {
-  const existingUser = await prisma.user.findUnique({
-    where: { email: kindeUser.email },
-  });
-
-  if (!existingUser) {
-    return prisma.user.create({
-      data: {
-        id: kindeUser.id,
-        email: kindeUser.email || '',
-        firstName: kindeUser.given_name || 'Unknown',
-        lastName: kindeUser.family_name || 'User',
-        role: 'USER',
-      },
-    });
-  } else {
-    return prisma.user.update({
-      where: { email: kindeUser.email },
-      data: {
-        firstName: kindeUser.given_name || existingUser.firstName,
-        lastName: kindeUser.family_name || existingUser.lastName,
-      },
-    });
-  }
-}
 
 export default async function DashboardPage() {
-  /* const { getUser } = getKindeServerSession();
+  const { getUser } = getKindeServerSession();
   const kindeUser = await getUser();
 
   if (!kindeUser || !kindeUser.email) {
     redirect("/api/auth/login");
-  } */
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-
-  if (!user || !user.email) {
-    redirect("/api/auth/login");
   }
 
-  // Sync user data
-  /* const user = await syncUser(kindeUser); */
-
-  const licenses: LicenseWithProduct[] = await prisma.license.findMany({
-    where: { ownerId: user.id },
-    include: { product: true },
-  });
-
-  const totalLicenses = licenses.length;
-  const activeLicenses = licenses.filter(l => new Date(l.expiryDate) > new Date()).length;
-  const pendingRenewal = licenses.filter(l => {
-    const daysUntilExpiry = Math.ceil((new Date(l.expiryDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
-    return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
-  }).length;
-  const expiredLicenses = licenses.filter(l => new Date(l.expiryDate) <= new Date()).length;
+  // Since we can't use the database, we'll use placeholder data
+  const totalLicenses = 0;
+  const activeLicenses = 0;
+  const pendingRenewal = 0;
+  const expiredLicenses = 0;
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <p>Welcome, {kindeUser.given_name || kindeUser.email}</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <HighlightedDetailsCard title="Total Licenses" value={totalLicenses} />
         <HighlightedDetailsCard title="Active Licenses" value={activeLicenses} />
@@ -76,11 +27,7 @@ export default async function DashboardPage() {
         <HighlightedDetailsCard title="Expired" value={expiredLicenses} />
       </div>
       <h2 className="text-xl font-semibold mb-4">Your Licenses</h2>
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {licenses.map((license) => (
-          <LicenseCard key={license.id} license={license} />
-        ))}
-      </div> */}
+      <p>License information is not available in this environment.</p>
     </div>
   );
 }
