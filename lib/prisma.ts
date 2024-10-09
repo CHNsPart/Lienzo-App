@@ -15,8 +15,14 @@ import { PrismaClient } from '@prisma/client'
 
 let prisma: PrismaClient
 
-if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient()
+if (process.env.VERCEL) {
+  prisma = new PrismaClient({
+    datasources: {
+      db: {
+        url: 'file:./prod.db'
+      },
+    },
+  })
 } else {
   if (!(global as any).prisma) {
     (global as any).prisma = new PrismaClient()
