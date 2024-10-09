@@ -1,7 +1,9 @@
+"use client"
+
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import HighlightedDetailsCard from "@/components/dashboard/HighlightedDetailsCard";
-import dynamic from 'next/dynamic';
+/* import dynamic from 'next/dynamic'; */
 import prisma from "@/lib/prisma";
 /* import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types"; */
 import { License, Product, User } from "@prisma/client";
