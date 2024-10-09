@@ -1,4 +1,3 @@
-// app/api/auth/[kindeAuth]/route.ts
 import { handleAuth, getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from '@prisma/client'
@@ -16,7 +15,7 @@ async function syncUser(user: any) {
         email: user.email,
         firstName: user.given_name || 'Unknown',
         lastName: user.family_name || 'User',
-        role: 'USER', // Default role
+        role: 'USER',
       },
     })
   } else {
@@ -30,11 +29,10 @@ async function syncUser(user: any) {
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: { kindeAuth: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { kindeAuth: string } }): Promise<Response> {
   const authResult = await handleAuth(request, params.kindeAuth);
   
   if (authResult instanceof NextResponse && authResult.status === 302) {
-    // Successful authentication
     const { getUser } = getKindeServerSession();
     const user = await getUser();
     if (user) {
@@ -42,5 +40,10 @@ export async function GET(request: NextRequest, { params }: { params: { kindeAut
     }
   }
   
-  return authResult;
+  if (authResult instanceof Response) {
+    return authResult;
+  }
+  
+  // If handleAuth doesn't return a Response, we need to return one
+  return new Response(null, { status: 200 });
 }

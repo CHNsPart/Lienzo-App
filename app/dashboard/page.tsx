@@ -3,10 +3,10 @@ import { redirect } from "next/navigation";
 import HighlightedDetailsCard from "@/components/dashboard/HighlightedDetailsCard";
 import dynamic from 'next/dynamic';
 import prisma from "@/lib/prisma";
-import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types";
+/* import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types"; */
 import { License, Product, User } from "@prisma/client";
 
-const LicenseCard = dynamic(() => import('@/components/dashboard/LicenseCard'), { ssr: false });
+/* const LicenseCard = dynamic(() => import('@/components/dashboard/LicenseCard'), { ssr: false }); */
 
 type LicenseWithProduct = License & { product: Product };
 

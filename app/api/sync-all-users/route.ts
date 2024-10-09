@@ -69,7 +69,7 @@ async function fetchAllKindeUsers(accessToken: string) {
   return allUsers;
 }
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   const { getUser } = getKindeServerSession();
   const currentUser:any = await getUser();
 

@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Roles, Role, roleHierarchy } from "@/lib/roles"
+import { Roles } from "@/lib/roles"
 
 interface User {
   id: string
@@ -225,7 +225,7 @@ export default function ClientsPage() {
           <DialogHeader>
             <DialogTitle>Confirm Role Change</DialogTitle>
             <DialogDescription>
-              Are you sure you want to change this user's role to {confirmationDialog.newRole}?
+              {"Are you sure you want to change this user's role to"}{" "}{confirmationDialog.newRole}?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

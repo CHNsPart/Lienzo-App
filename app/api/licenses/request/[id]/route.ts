@@ -3,6 +3,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import prisma from "@/lib/prisma";
 import { isAdminOrManager } from "@/lib/auth";
 import dayjs from 'dayjs';
+import { LicenseRequest, Product } from "@prisma/client";
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const { getUser } = getKindeServerSession();
@@ -25,7 +26,19 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: "License request not found" }, { status: 404 });
     }
 
-    let updateData: any = { status };
+    const updateData: {
+      status: string;
+      licenses?: {
+        create: {
+          key: string;
+          productId: string;
+          ownerId: string;
+          duration: number;
+          startDate: Date;
+          expiryDate: Date;
+        }[];
+      };
+    } = { status };
 
     if (status === 'ACTIVE') {
       if (!licenseKeys) {
@@ -46,7 +59,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
       // Create licenses
       updateData.licenses = {
-        create: keys.map((key: any) => ({
+        create: keys.map((key: string) => ({
           key,
           productId: licenseRequest.productId,
           ownerId: licenseRequest.userId,
@@ -90,7 +103,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       }
       acc[request.productId].requests.push(request);
       return acc;
-    }, {} as Record<string, { product: any, requests: any[] }>);
+    }, {} as Record<string, { product: Product; requests: LicenseRequest[] }>);
 
     return NextResponse.json({
       updatedRequest,

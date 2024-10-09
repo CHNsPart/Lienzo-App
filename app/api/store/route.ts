@@ -3,7 +3,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import prisma from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const { getUser } = getKindeServerSession();
     const user = await getUser();

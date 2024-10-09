@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Check, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -196,7 +196,7 @@ export default function MultiStepModal({ isOpen, setIsOpen }: MultiStepModalProp
                   <Check className="w-12 h-12 text-green-600" />
                 </motion.div>
                 <p className="text-xl font-semibold mb-4">Thank you for your submission!</p>
-                <p className="text-gray-600 mb-6">We'll get back to you shortly.</p>
+                <p className="text-gray-600 mb-6">W{"e'll get back to you shortly."}</p>
                 <Button onClick={resetForm}>Close</Button>
               </div>
             )}

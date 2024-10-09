@@ -14,6 +14,10 @@ export default function SidebarWrapper() {
     return null;
   }
 
+/*   || "/contact" || "/aboutus" || "/faq" */
+
+  
+
   // Show sidebar for authenticated users on all other pages
   if (isAuthenticated) {
     return <Sidebar />;

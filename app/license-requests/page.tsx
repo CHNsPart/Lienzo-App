@@ -14,7 +14,7 @@ export default async function LicenseRequestsPage() {
 
   const licenseRequests = await prisma.licenseRequest.findMany({
     include: { 
-      user: { select: { firstName: true, lastName: true, email: true } },
+      user: true,
       product: true 
     },
     orderBy: { createdAt: 'desc' }
