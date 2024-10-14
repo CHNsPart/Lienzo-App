@@ -57,7 +57,7 @@ export default async function AboutUsPage() {
   ];
 
   return (
-    <section className='bg-white'>
+    <section className='h-full bg-white'>
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="flex flex-col lg:flex-row gap-12">
           <div className="lg:w-2/3">

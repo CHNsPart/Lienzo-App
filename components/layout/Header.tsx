@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { Roles, Role } from "@/lib/roles";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { LayoutDashboard, LogOut, Settings } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 export default function Header() {
@@ -82,11 +82,11 @@ export default function Header() {
                 <DropdownMenuItem asChild>
                   <Link className="gap-2 text-gray-500" href="/dashboard"><LayoutDashboard className="size-4" /> Dashboard</Link>
                 </DropdownMenuItem>
-                {/* {userRole === Roles.ADMIN && (
+                {userRole === Roles.ADMIN && (
                   <DropdownMenuItem asChild>
-                    <Link href="/settings">Settings</Link>
+                    <Link className="gap-2 text-gray-500" href="/settings"><Settings className="size-4" /> Settings</Link>
                   </DropdownMenuItem>
-                )} */}
+                )}
                 <DropdownMenuItem className="hover:bg-red-100 hover:text-red-500 text-red-500" asChild>
                   <LogoutLink className="gap-2"><LogOut className="size-4" /> Logout</LogoutLink>
                 </DropdownMenuItem>

@@ -32,8 +32,8 @@ export default function Sidebar() {
 
   const links = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    /* { href: "/licenses", label: "Licenses", icon: Key },
-    { href: "/store", label: "Store", icon: Store }, */
+    /* { href: "/licenses", label: "Licenses", icon: Key }, */
+    { href: "/store", label: "Store", icon: Store },
     ...(userRole === Roles.ADMIN ? [
       /* { href: "/clients", label: "Clients", icon: Users },
       { href: "/license-requests", label: "License Requests", icon: FileText }, */
