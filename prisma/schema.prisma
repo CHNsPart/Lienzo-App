@@ -91,3 +91,15 @@ model UserPermission {
 
   @@unique([userId, permissionId])
 }
+
+model QuoteRequest {
+  id          String   @id @default(cuid())
+  fullName    String
+  email       String
+  phoneNumber String?
+  companyName String?
+  companySize String?
+  interests   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

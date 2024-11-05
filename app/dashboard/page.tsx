@@ -1,12 +1,11 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
-import HighlightedDetailsCard from "@/components/dashboard/HighlightedDetailsCard";
-/* import dynamic from 'next/dynamic'; */
 import prisma from "@/lib/prisma";
-/* import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types"; */
 import { License, Product, User } from "@prisma/client";
+import { isAdminOrManager } from "@/lib/auth";
+import { UserDashboard } from "@/components/dashboardViews/UserDashboard";
+import { AdminDashboard } from "@/components/dashboardViews/AdminDashboard";
 
-/* const LicenseCard = dynamic(() => import('@/components/dashboard/LicenseCard'), { ssr: false }); */
 
 type LicenseWithProduct = License & { product: Product };
 
@@ -48,7 +47,6 @@ export default async function DashboardPage() {
   let user: User | null = null;
   let licenses: LicenseWithProduct[] = [];
   try {
-    // Sync user data
     user = await syncUser(kindeUser);
 
     if (user) {
@@ -61,29 +59,11 @@ export default async function DashboardPage() {
     console.error('Error fetching data:', error);
   }
 
-  const totalLicenses = licenses.length;
-  const activeLicenses = licenses.filter(l => new Date(l.expiryDate) > new Date()).length;
-  const pendingRenewal = licenses.filter(l => {
-    const daysUntilExpiry = Math.ceil((new Date(l.expiryDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
-    return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
-  }).length;
-  const expiredLicenses = licenses.filter(l => new Date(l.expiryDate) <= new Date()).length;
+  const isAdminOrManagerUser = await isAdminOrManager(kindeUser);
 
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <HighlightedDetailsCard title="Total Licenses" value={totalLicenses} />
-        <HighlightedDetailsCard title="Active Licenses" value={activeLicenses} />
-        <HighlightedDetailsCard title="Pending Renewal" value={pendingRenewal} />
-        <HighlightedDetailsCard title="Expired" value={expiredLicenses} />
-      </div>
-      <h2 className="text-xl font-semibold mb-4">Your Licenses</h2>
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {licenses.map((license) => (
-          <LicenseCard key={license.id} license={license} />
-        ))}
-      </div> */}
-    </div>
-  );
+  if (isAdminOrManagerUser) {
+    return <AdminDashboard />;
+  }
+
+  return <UserDashboard licenses={licenses} />;
 }

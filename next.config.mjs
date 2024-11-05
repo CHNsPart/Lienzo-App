@@ -1,7 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['localhost', 'lienzo-app.vercel.app'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lienzo-app.vercel.app',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      }
+    ]
+  },
+  webpack: (config, { dev, isServer }) => {
+    if (dev) {
+      config.cache = false;
+    }
+    return config;
   },
   async rewrites() {
     return [

@@ -12,6 +12,10 @@ const GetQuote: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <section className="my-36">
       <div className="max-w-6xl mx-auto rounded-xl flex justify-between items-stretch bg-gradient-to-l from-lienzo/30 via-lienzo/20 to-transparent">
@@ -31,7 +35,7 @@ const GetQuote: React.FC = () => {
           />
         </div>
       </div>
-      <MultiStepModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} />
+      <MultiStepModal isOpen={isModalOpen} onClose={handleCloseModal} />
     </section>
   );
 };

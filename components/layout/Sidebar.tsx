@@ -1,7 +1,7 @@
 import { useKindeAuth } from "@kinde-oss/kinde-auth-nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Key, Store, Users, FileText } from 'lucide-react';
+import { LayoutDashboard, Key, Store, Users, FileText, MessageSquareQuote, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Roles, Role } from "@/lib/roles";
 
@@ -28,15 +28,20 @@ export default function Sidebar() {
   }, [isAuthenticated]);
 
   if (!isAuthenticated) return null;
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return (
+    <div className="flex justify-center items-center h-screen">
+      <Loader2 className="h-8 w-8 animate-spin text-lienzo" />
+    </div>
+  );
 
   const links = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    /* { href: "/licenses", label: "Licenses", icon: Key }, */
+    { href: "/licenses", label: "Licenses", icon: Key },
     { href: "/store", label: "Store", icon: Store },
     ...(userRole === Roles.ADMIN ? [
-      /* { href: "/clients", label: "Clients", icon: Users },
-      { href: "/license-requests", label: "License Requests", icon: FileText }, */
+      { href: "/clients", label: "Clients", icon: Users },
+      { href: "/license-requests", label: "License Requests", icon: FileText },
+      /* { href: "/quote-requests", label: "Quote Requests", icon: MessageSquareQuote }, */
     ] : []),
   ];
 

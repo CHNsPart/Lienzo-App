@@ -151,6 +151,82 @@ erDiagram
 
 The project is designed to be deployed on Vercel or similar platforms that support Next.js applications.
 
+## App Structure & Features (Elaborated)
+
+### User Authentication and Authorization
+- User registration and login via Kinde Auth
+- Role-based access control (USER, MANAGER, SUPPORT, ADMIN)
+- Custom middleware for route protection
+
+### Dashboard
+- Overview of user's licenses
+- Display of total, active, pending renewal, and expired licenses
+
+### License Management
+- Viewing individual license details
+- License key visibility toggle and copy functionality
+
+### Store
+- Product listing
+- Individual product pages with detailed information
+- Product creation and editing (admin functionality)
+
+### License Request System
+- Users can request licenses for products
+- Admins can review and manage license requests
+
+### User Management (Admin)
+- View all users
+- Change user roles
+
+### Settings (Admin)
+- Manage license durations
+
+### API Endpoints
+- User synchronization with Kinde
+- CRUD operations for products
+- License request handling
+- User role management
+
+### Responsive UI
+- Mobile-friendly design using Tailwind CSS
+
+### Client-side State Management
+- React Query for data fetching and caching
+
+### Server-side Rendering
+- Next.js App Router for improved performance and SEO
+
+### Database Integration
+- Prisma ORM with SQLite database
+
+### Custom UI Components
+- Reusable components like modals, cards, and form elements
+
+### Toasts for Notifications
+- User feedback for actions (success, error messages)
+
+### Multi-step Forms
+- For complex user inputs like getting quotes
+
+### Image Handling
+- Product image upload and display
+
+### Caching System
+- Server-side caching for improved performance
+
+### Permission System
+- Fine-grained access control based on user roles and permissions
+
+### Public Pages
+- Home page with feature highlights
+- About Us page
+- FAQ page
+- Contact page
+
+### Error Handling
+- Custom error messages and handling for API requests
+
 ## Future Enhancements
 
 - Integration with popular software vendors for automated license provisioning
