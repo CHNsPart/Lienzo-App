@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
         description,
         features,
         durations,
+        versions: JSON.stringify(['1.0.0']),
         image: imageBuffer,
       },
     });
@@ -90,6 +91,11 @@ export async function PATCH(request: NextRequest) {
       imageBuffer = Buffer.from(bytes);
     }
 
+    const existingProduct = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { versions: true }
+    });
+
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
       data: {
@@ -98,6 +104,7 @@ export async function PATCH(request: NextRequest) {
         features,
         durations,
         ...(imageBuffer && { image: imageBuffer }),
+        versions: existingProduct?.versions || JSON.stringify(['1.0.0']),
       },
     });
 

@@ -1,37 +1,40 @@
-"use client"
+"use client";
 
 import { useState, useMemo } from 'react';
-import { 
-  LicenseWithProduct, 
-  CategoryMap, 
-  DashboardStats 
-} from "@/types/dashboard";
+import { ProductCategory, CategoryMap, DashboardStats, } from "@/types/dashboard";
+import { LicenseWithDetails } from "@/types/license-management";
 import HighlightedDetailsCard from "@/components/dashboard/HighlightedDetailsCard";
 import dynamic from 'next/dynamic';
 import CategoryCard from "@/components/dashboard/CategoryCard";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface UserDashboardProps {
-  licenses: LicenseWithProduct[];
-}
+import { LICENSE_STATUS } from '@/lib/constants';
+import { LicenseRequest } from '@prisma/client';
 
 const LicenseCard = dynamic(() => import('@/components/dashboard/LicenseCard'), { ssr: false });
 
-export function UserDashboard({ licenses }: UserDashboardProps) {
+interface UserDashboardProps {
+  licenses: LicenseWithDetails[];
+  licenseRequests?: LicenseRequest[];
+}
+
+export function UserDashboard({ licenses, licenseRequests = [] }: UserDashboardProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const stats = useMemo<DashboardStats>(() => ({
     totalLicenses: licenses.length,
-    activeLicenses: licenses.filter(l => new Date(l.expiryDate) > new Date()).length,
-    pendingRenewal: licenses.filter(l => {
-      const daysUntilExpiry = Math.ceil((new Date(l.expiryDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
-      return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
-    }).length,
-    expiredLicenses: licenses.filter(l => new Date(l.expiryDate) <= new Date()).length,
-  }), [licenses]);
+    activeLicenses: licenses.filter(l => 
+      l.status === LICENSE_STATUS.ACTIVE && 
+      new Date(l.expiryDate) > new Date()
+    ).length,
+    pending: licenseRequests.filter(r => r.status === LICENSE_STATUS.PENDING).length,
+    expiredLicenses: licenses.filter(l => 
+      l.status === LICENSE_STATUS.EXPIRED || 
+      (l.status === LICENSE_STATUS.ACTIVE && new Date(l.expiryDate) <= new Date())
+    ).length,
+  }), [licenses, licenseRequests]);
 
   const categories = useMemo(() => {
-    return licenses.reduce((acc: CategoryMap, license) => {
+    return licenses.reduce((acc: CategoryMap, license: LicenseWithDetails) => {
       const productId = license.product.id;
       if (!acc[productId]) {
         acc[productId] = {
@@ -56,7 +59,7 @@ export function UserDashboard({ licenses }: UserDashboardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <HighlightedDetailsCard title="Total Licenses" value={stats.totalLicenses} />
         <HighlightedDetailsCard title="Active Licenses" value={stats.activeLicenses} />
-        <HighlightedDetailsCard title="Pending Renewal" value={stats.pendingRenewal} />
+        <HighlightedDetailsCard title="Pending" value={stats.pending} />
         <HighlightedDetailsCard title="Expired" value={stats.expiredLicenses} />
       </div>
 

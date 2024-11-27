@@ -17,6 +17,8 @@ import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { Roles, Role } from "@/lib/roles";
 import { LayoutDashboard, LogOut, Settings } from "lucide-react";
 import { Separator } from "../ui/separator";
+import { Badge } from "../ui/badge";
+import { cn } from "@/lib/utils";
 
 export default function Header() {
   const { isAuthenticated, user } = useKindeAuth();
@@ -39,6 +41,21 @@ export default function Header() {
       .map(part => part[0])
       .join('')
       .toUpperCase();
+  };
+
+  const getBadgeVariant = (role: string) => {
+    switch (role) {
+      case Roles.ADMIN:
+        return "border-violet-200 bg-gradient-to-r from-violet-50 via-violet-100 to-violet-50 text-violet-700 hover:bg-violet-100 hover:border-violet-300 hover:text-violet-800";
+      case Roles.MANAGER:
+        return "border-sky-200 bg-gradient-to-r from-sky-50 via-sky-100 to-sky-50 text-sky-700 hover:bg-sky-100 hover:border-sky-300 hover:text-sky-800";
+      case Roles.SUPPORT:
+        return "border-emerald-200 bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300 hover:text-emerald-800";
+      case Roles.USER:
+        return "border-gray-200 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 text-gray-700 hover:bg-gray-100 hover:border-gray-300 hover:text-gray-800";
+      default:
+        return "border-gray-200 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300 hover:text-gray-800";
+    }
   };
 
   return (
@@ -77,6 +94,15 @@ export default function Header() {
                 <DropdownMenuItem className="flex-col items-start">
                   <div className="text-sm font-medium">{user?.given_name}</div>
                   <div className="text-xs text-gray-500">{user?.email}</div>
+                  <Badge 
+                    className={cn(
+                      "mt-1 w-full flex items-center justify-center border text-xs",
+                      "transition-colors duration-200",
+                      getBadgeVariant(userRole)
+                    )}
+                  >
+                    {userRole}
+                  </Badge>
                 </DropdownMenuItem>
                 <Separator className="my-2" />
                 <DropdownMenuItem asChild>

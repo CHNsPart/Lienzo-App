@@ -1,6 +1,7 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { isAdminOrManager } from "@/lib/auth";
 
 export async function GET() {
   const { getUser } = getKindeServerSession();
@@ -11,9 +12,27 @@ export async function GET() {
   }
 
   try {
+    const isUserAdminOrManager = await isAdminOrManager(user);
+
     const licenses = await prisma.license.findMany({
-      where: { ownerId: user.id },
-      include: { product: true },
+      where: {
+        ...(isUserAdminOrManager ? {} : { ownerId: user.id }),
+        deletedAt: null
+      },
+      include: { 
+        product: true,
+        owner: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
     });
 
     return NextResponse.json(licenses);
@@ -38,6 +57,7 @@ export async function POST(request: NextRequest) {
       data: {
         ...body,
         ownerId: user.id,
+        status: 'PENDING',
       },
     });
 

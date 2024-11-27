@@ -18,6 +18,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Roles } from "@/lib/roles"
+import dayjs from 'dayjs';
+import { cn } from '@/lib/utils'
+
+interface UserCount {
+  licenseRequests: number;
+  licenses: number;
+  permissions: number;
+}
 
 interface User {
   id: string
@@ -29,6 +37,8 @@ interface User {
   newUser: boolean
   createdAt: string
   updatedAt: string
+  permissions: any[]
+  _count: UserCount
 }
 
 export default function ClientsPage() {
@@ -67,6 +77,7 @@ export default function ClientsPage() {
       const response = await fetch('/api/users')
       if (!response.ok) throw new Error('Failed to fetch users')
       const data = await response.json()
+      console.log('User data:', data)
       setUsers(data)
     } catch (error) {
       console.error('Error fetching users:', error)
@@ -127,57 +138,105 @@ export default function ClientsPage() {
     return acc
   }, {} as Record<string, User[]>)
 
+  const getBadgeVariant = (role: string) => {
+    switch (role) {
+      case Roles.ADMIN:
+        return "border-violet-200 bg-gradient-to-r from-violet-50 via-violet-100 to-violet-50 text-violet-700 hover:bg-violet-100 hover:border-violet-300 hover:text-violet-800";
+      case Roles.MANAGER:
+        return "border-sky-200 bg-gradient-to-r from-sky-50 via-sky-100 to-sky-50 text-sky-700 hover:bg-sky-100 hover:border-sky-300 hover:text-sky-800";
+      case Roles.SUPPORT:
+        return "border-emerald-200 bg-gradient-to-r from-emerald-50 via-emerald-100 to-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300 hover:text-emerald-800";
+      case Roles.USER:
+        return "border-gray-200 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 text-gray-700 hover:bg-gray-100 hover:border-gray-300 hover:text-gray-800";
+      default:
+        return "border-gray-200 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300 hover:text-gray-800";
+    }
+  };
+
   const UserCard = ({ user }: { user: User }) => (
-    <Card key={user.id} className="flex flex-col h-full transition-all duration-300 hover:shadow-lg">
-      <CardHeader className="pb-2">
-        <div className="flex items-center space-x-4">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.firstName}%20${user.lastName}`} alt={`${user.firstName} ${user.lastName}`} />
-            <AvatarFallback>{user.firstName[0]}{user.lastName[0]}</AvatarFallback>
-          </Avatar>
-          <div>
-            <CardTitle className="text-lg">{user.firstName} {user.lastName}</CardTitle>
-            <p className="text-sm text-muted-foreground">{user.email}</p>
+    <Card className="transition-all duration-300 hover:shadow-lg bg-white/50 backdrop-blur-sm">
+      <CardContent className="p-6">
+        {/* Header - Avatar and Main Info */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center space-x-4">
+            <Avatar className="size-14 border-2 border-gray-100 ring-2 ring-primary/5">
+              <AvatarImage
+                src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.firstName}%20${user.lastName}`}
+                alt={`${user.firstName} ${user.lastName}`}
+              />
+              <AvatarFallback>{user.firstName[0]}{user.lastName[0]}</AvatarFallback>
+            </Avatar>
+            <div>
+              <h3 className="text-md font-semibold text-gray-900">{user.firstName} {user.lastName}</h3>
+              <p className="text-sm text-gray-500">{user.email}</p>
+            </div>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="flex-grow pt-2">
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Role:</span>
-            <Badge variant={user.role === Roles.ADMIN ? "default" : "secondary"}>{user.role}</Badge>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-4 mt-6 p-3 bg-gray-50 rounded-lg">
+          <div className="text-center border-r border-gray-200">
+            <p className="text-2xl font-bold text-primary">{user._count.licenses}</p>
+            <p className="text-xs text-gray-500 mt-1">Licenses</p>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Phone:</span>
-            <span>{user.phoneNumber || 'Not provided'}</span>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-primary">{user._count.licenseRequests}</p>
+            <p className="text-xs text-gray-500 mt-1">Requests</p>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">New User:</span>
-            <span>{user.newUser ? 'Yes' : 'No'}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Joined:</span>
-            <span>{new Date(user.createdAt).toLocaleDateString()}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Last Updated:</span>
-            <span>{new Date(user.updatedAt).toLocaleDateString()}</span>
-          </div>
+          {/* <div className="text-center">
+            <p className="text-2xl font-bold text-primary">{user._count.permissions}</p>
+            <p className="text-xs text-gray-500 mt-1">Permissions</p>
+          </div> */}
         </div>
 
-        <div className="mt-4">
+        <div className="mt-6 w-full text-center">
+          <Badge 
+            className={cn(
+              "mx-auto w-full flex items-center justify-center border",
+              "transition-colors duration-200",
+              getBadgeVariant(user.role)
+            )}
+          >
+            {user.role}
+          </Badge>
+        </div>
+  
+        {/* Details Grid */}
+        <div className="grid grid-cols-2 gap-4 mt-6">
+          <div className="space-y-1">
+            <p className="text-sm text-gray-500">Phone</p>
+            <p className="text-sm font-medium">{user.phoneNumber || 'Not provided'}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-gray-500">Quote Status</p>
+            <Badge variant="outline" className={user.newUser ? "bg-green-50 text-green-700" : ""}>
+              {user.newUser ? 'No Quote' : 'Got Quote'}
+            </Badge>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-gray-500">Joined</p>
+            <p className="text-sm font-medium">{dayjs(user.createdAt).format('MMM D, YYYY')}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-gray-500">Last Updated</p>
+            <p className="text-sm font-medium">{dayjs(user.updatedAt).format('MMM D, YYYY')}</p>
+          </div>
+        </div>
+  
+        {/* Action Button */}
+        <div className="mt-6">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full">
-                Change Role <ChevronDown className="ml-2 h-4 w-4" />
+              <Button variant="outline" size="sm" className="w-full bg-white hover:bg-gray-50">
+                Manage Role <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
+            <DropdownMenuContent align="end" className="w-48">
               {Object.values(Roles).map((role) => (
                 <DropdownMenuItem
                   key={role}
                   onClick={() => handleRoleChange(user.id, role)}
                   disabled={user.role === role}
+                  className={user.role === role ? "bg-gray-50" : ""}
                 >
                   Set as {role}
                 </DropdownMenuItem>
@@ -187,13 +246,13 @@ export default function ClientsPage() {
         </div>
       </CardContent>
     </Card>
-  )
-
+  );
+  
   return (
-    <div className="container mx-auto p-6 space-y-8">
+    <div className="container p-6 space-y-8">
       <h1 className="text-4xl font-bold mb-6">Client Management</h1>
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 mb-8">
+        <TabsList className="grid w-fit grid-cols-5 mb-8">
           <TabsTrigger value="all">All Users</TabsTrigger>
           {Object.values(Roles).map((role) => (
             <TabsTrigger key={role} value={role}>{role}s</TabsTrigger>

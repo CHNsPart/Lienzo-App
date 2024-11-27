@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { MultiSelect, Option } from "@/components/ui/multi-select";
 import { useToast } from '@/hooks/use-toast';
 import { Product } from "@/types/product";
+import { Edit3 } from 'lucide-react';
 
 interface EditProductModalProps {
   product: Product;
@@ -95,7 +96,9 @@ export default function EditProductModal({ product }: EditProductModalProps) {
 
   return (
     <>
-      <Button onClick={() => setIsOpen(true)}>Edit Product</Button>
+      <Button className='flex items-center justify-center gap-2' onClick={() => setIsOpen(true)}>
+        <Edit3 className='size-4' />  Edit Product
+      </Button>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

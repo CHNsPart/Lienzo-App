@@ -1,4 +1,5 @@
-import { License, Product } from "@prisma/client";
+import { License, LicenseRequest, Product } from "@prisma/client";
+import { LicenseWithDetails } from "./license-management";
 
 export type LicenseWithProduct = License & { 
   product: Product 
@@ -6,7 +7,7 @@ export type LicenseWithProduct = License & {
 
 export type ProductCategory = {
   product: Product;
-  licenses: LicenseWithProduct[];
+  licenses: LicenseWithDetails[];
   count: number;
 };
 
@@ -23,6 +24,6 @@ export interface CategoryCardProps {
 export interface DashboardStats {
   totalLicenses: number;
   activeLicenses: number;
-  pendingRenewal: number;
+  pending: number;
   expiredLicenses: number;
 }

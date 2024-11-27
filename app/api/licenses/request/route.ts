@@ -10,16 +10,33 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
-  const { productId, quantity, duration, message, companyName } = body;
-
   try {
+    const body = await req.json();
+    const { productId, quantity, duration, version, message, companyName } = body;
+
+    // Validate version exists in product
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    const productVersions = JSON.parse(product.versions);
+    if (!productVersions.includes(version)) {
+      return NextResponse.json({ 
+        error: "Invalid version selected" 
+      }, { status: 400 });
+    }
+
     const licenseRequest = await prisma.licenseRequest.create({
       data: {
         userId: user.id,
         productId,
         quantity,
         duration,
+        version,
         message,
         companyName,
         status: "PENDING",
@@ -29,6 +46,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(licenseRequest, { status: 201 });
   } catch (error) {
     console.error("Failed to create license request:", error);
-    return NextResponse.json({ error: "Failed to create license request" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Failed to create license request",
+      details: error instanceof Error ? error.message : "Unknown error"
+    }, { status: 500 });
   }
 }

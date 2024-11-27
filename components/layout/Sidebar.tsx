@@ -41,7 +41,7 @@ export default function Sidebar() {
     ...(userRole === Roles.ADMIN ? [
       { href: "/clients", label: "Clients", icon: Users },
       { href: "/license-requests", label: "License Requests", icon: FileText },
-      /* { href: "/quote-requests", label: "Quote Requests", icon: MessageSquareQuote }, */
+      { href: "/quote-requests", label: "Quote Requests", icon: MessageSquareQuote },
     ] : []),
   ];
 

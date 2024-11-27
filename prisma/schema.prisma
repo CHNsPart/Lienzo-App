@@ -29,9 +29,12 @@ model License {
   productId  String
   owner      User     @relation(fields: [ownerId], references: [id])
   ownerId    String
+  status     String   @default("PENDING")
   duration   Int
+  version    String
   startDate  DateTime
   expiryDate DateTime
+  deletedAt  DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   request    LicenseRequest @relation(fields: [requestId], references: [id])
@@ -45,6 +48,7 @@ model Product {
   features    String
   image       Bytes?
   durations   String
+  versions    String
   licenses    License[]
   licenseRequests LicenseRequest[]
 }
@@ -60,6 +64,7 @@ model LicenseRequest {
   message     String?
   companyName String
   status      String   @default("PENDING")
+  version    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   licenses    License[]

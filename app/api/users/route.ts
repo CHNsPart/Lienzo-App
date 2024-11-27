@@ -29,6 +29,12 @@ export async function GET(request: NextRequest) {
         firstName: true,
         lastName: true,
         role: true,
+        newUser: true,
+        phoneNumber: true,
+        permissions: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: true
       },
     });
 

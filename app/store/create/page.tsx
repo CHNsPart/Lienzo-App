@@ -14,6 +14,7 @@ export default function CreateProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [features, setFeatures] = useState([{ name: '', description: '' }]);
   const [selectedDurations, setSelectedDurations] = useState<string[]>([]);
+  const [versions] = useState<string[]>(['1.0.0']);
 
   const durationOptions: Option[] = licenseDurations.durations.map(duration => ({
     label: `${duration} months`,
@@ -42,6 +43,7 @@ export default function CreateProductPage() {
     const formData = new FormData(event.currentTarget);
     formData.set('features', JSON.stringify(features));
     formData.set('durations', JSON.stringify(selectedDurations.map(Number)));
+    formData.set('versions', JSON.stringify(versions));
 
     try {
       const response = await fetch('/api/store', {
@@ -62,7 +64,6 @@ export default function CreateProductPage() {
       }
     } catch (error) {
       console.error('Error creating product:', error);
-      // Handle error (e.g., show an error message to the user)
     } finally {
       setIsSubmitting(false);
     }

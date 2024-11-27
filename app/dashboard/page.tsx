@@ -1,10 +1,11 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { License, Product, User } from "@prisma/client";
+import { License, LicenseRequest, Product, User } from "@prisma/client";
 import { isAdminOrManager } from "@/lib/auth";
 import { UserDashboard } from "@/components/dashboardViews/UserDashboard";
 import { AdminDashboard } from "@/components/dashboardViews/AdminDashboard";
+import { LicenseWithDetails } from "@/types/license-management";
 
 
 type LicenseWithProduct = License & { product: Product };
@@ -45,18 +46,40 @@ export default async function DashboardPage() {
   }
 
   let user: User | null = null;
-  let licenses: LicenseWithProduct[] = [];
+  let licenses: LicenseWithDetails[] = [];
+  let licenseRequests: LicenseRequest[] = [];
+
   try {
     user = await syncUser(kindeUser);
 
     if (user) {
       licenses = await prisma.license.findMany({
-        where: { ownerId: user.id },
-        include: { product: true },
+        where: { 
+          ownerId: user.id,
+          deletedAt: null  
+        },
+        include: { 
+          product: true,
+          owner: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          }
+        },
+      });
+
+      licenseRequests = await prisma.licenseRequest.findMany({
+        where: {
+          userId: user.id,
+          status: 'PENDING'
+        }
       });
     }
   } catch (error) {
-    console.error('Error fetching data:', error);
+      console.error('Error fetching data:', error);
   }
 
   const isAdminOrManagerUser = await isAdminOrManager(kindeUser);
@@ -65,5 +88,5 @@ export default async function DashboardPage() {
     return <AdminDashboard />;
   }
 
-  return <UserDashboard licenses={licenses} />;
+  return <UserDashboard licenses={licenses} licenseRequests={licenseRequests} />;
 }

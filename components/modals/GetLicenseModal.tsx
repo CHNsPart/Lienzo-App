@@ -1,19 +1,12 @@
-// components/modals/GetLicenseModal.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,17 +14,70 @@ interface GetLicenseModalProps {
   productId: string;
 }
 
+interface Product {
+  id: string;
+  versions: string;
+  durations: string;
+}
+
 export default function GetLicenseModal({ productId }: GetLicenseModalProps) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [duration, setDuration] = useState("3");
+  const [duration, setDuration] = useState("");
   const [message, setMessage] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [versions, setVersions] = useState<string[]>([]);
+  const [durations, setDurations] = useState<number[]>([]);
+  const [selectedVersion, setSelectedVersion] = useState<string>("");
   const router = useRouter();
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (open) {
+      // Fetch product details including versions and durations
+      fetch(`/api/store`)
+        .then(response => response.json())
+        .then(products => {
+          const product = products.find((p: Product) => p.id === productId);
+          if (product) {
+            // Parse versions
+            const productVersions = JSON.parse(product.versions);
+            setVersions(productVersions);
+            if (productVersions.length > 0) {
+              setSelectedVersion(productVersions[productVersions.length - 1]);
+            }
+
+            // Parse durations
+            const productDurations = JSON.parse(product.durations);
+            setDurations(productDurations);
+            if (productDurations.length > 0) {
+              setDuration(productDurations[0].toString());
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching product details:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load product details",
+            variant: "destructive",
+          });
+        });
+    }
+  }, [open, productId, toast]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!selectedVersion) {
+      toast({
+        title: "Error",
+        description: "Please select a product version",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const response = await fetch("/api/licenses/request", {
         method: "POST",
@@ -42,25 +88,28 @@ export default function GetLicenseModal({ productId }: GetLicenseModalProps) {
           productId,
           quantity,
           duration: parseInt(duration),
+          version: selectedVersion,
           message,
           companyName,
         }),
       });
 
-      if (response.ok) {
-        toast({
-          title: "License request submitted",
-          description: "Your license request has been submitted successfully.",
-        });
-        setOpen(false);
-        router.push("/dashboard");
-      } else {
-        throw new Error("Failed to submit license request");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to submit license request');
       }
+
+      toast({
+        title: "Success",
+        description: "Your license request has been submitted successfully.",
+      });
+      setOpen(false);
+      router.push("/dashboard");
     } catch (error) {
+      console.error('License request error:', error);
       toast({
         title: "Error",
-        description: "Failed to submit license request. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to submit license request",
         variant: "destructive",
       });
     }
@@ -94,9 +143,30 @@ export default function GetLicenseModal({ productId }: GetLicenseModalProps) {
                 <SelectValue placeholder="Select duration" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="3">3 months</SelectItem>
-                <SelectItem value="6">6 months</SelectItem>
-                <SelectItem value="12">12 months</SelectItem>
+                {durations.map((months) => (
+                  <SelectItem key={months} value={months.toString()}>
+                    {months} months
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="version">Version</Label>
+            <Select 
+              value={selectedVersion} 
+              onValueChange={setSelectedVersion}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select version" />
+              </SelectTrigger>
+              <SelectContent>
+                {versions.map((version) => (
+                  <SelectItem key={version} value={version}>
+                    {version}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -117,7 +187,12 @@ export default function GetLicenseModal({ productId }: GetLicenseModalProps) {
               onChange={(e) => setMessage(e.target.value)}
             />
           </div>
-          <Button type="submit">Submit Request</Button>
+          <Button 
+            type="submit" 
+            disabled={!selectedVersion || !duration || !companyName}
+          >
+            Submit Request
+          </Button>
         </form>
       </DialogContent>
     </Dialog>
