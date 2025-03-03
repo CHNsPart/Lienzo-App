@@ -9,6 +9,7 @@ import LicenseDurationModal from '@/components/modals/LicenseDurationModal';
 import ProductVersionModal from '@/components/modals/ProductVersionModal';
 import { Role, Roles } from '@/lib/roles';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DocumentManagement } from '@/components/settings/DocumentManagement';
 
 interface Product {
   id: string;
@@ -275,6 +276,9 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Add Document Management Card */}
+      <DocumentManagement />
 
       <LicenseDurationModal
         isOpen={isModalOpen}

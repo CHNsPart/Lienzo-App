@@ -25,6 +25,7 @@ Lienzo is a comprehensive enterprise-level software license management system de
 - **Form Handling**: React Hook Form
 - **Date Handling**: Day.js
 
+Project knowledge
 ## Project Structure
 
 - `/app`: Next.js app directory containing pages and API routes

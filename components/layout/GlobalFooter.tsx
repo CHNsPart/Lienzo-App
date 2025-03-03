@@ -4,7 +4,7 @@ import Link from 'next/link';
 export default function GlobalFooter() {
   return (
     <footer className="py-5 px-10 justify-between w-full bg-white border-t border-gray-200">
-      <div className="flex justify-between text-center text-[#A4ABB5] w-full">
+      <div className="flex flex-col md:flex-row gap-2 justify-between text-center text-[#A4ABB5] w-full">
         <p>© 2024 - Lienzo . All rights reserved.</p>
         <div className="flex justify-center space-x-4">
           <Link href="#" className="text-[#373A42] hover:text-[#F26B60]">
