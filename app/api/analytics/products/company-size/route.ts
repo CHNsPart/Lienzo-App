@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { isAdminOrManager } from "@/lib/auth";
 
 export async function GET() {

@@ -1,6 +1,6 @@
 // import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types";
 // import { Roles, hasRole, Role } from './roles';
-// import { prisma } from "./prisma";
+// import prisma from "./prisma";
 
 // export async function isAdmin(user: KindeUser<Record<string, any>> | null): Promise<boolean> {
 //   if (!user || !user.id || !user.email) {
@@ -41,7 +41,7 @@
 // lib/auth.ts
 import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types";
 import { Roles, hasRole, Role } from './roles';
-import { prisma } from "./prisma";
+import prisma from "./prisma";
 
 export async function isAdmin(user: KindeUser<Record<string, any>> | null): Promise<boolean> {
   if (!user || !user.id || !user.email) {

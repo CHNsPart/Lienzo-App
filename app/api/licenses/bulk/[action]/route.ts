@@ -1,7 +1,7 @@
 // app/api/licenses/bulk/[action]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { isAdminOrManager } from "@/lib/auth";
 import { LICENSE_STATUS } from "@/lib/constants";
 

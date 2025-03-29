@@ -1,9 +1,10 @@
 // app/api/instructions/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
 import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from "@/lib/constants/support";
+import { promises as fs } from 'fs';
 
 export async function GET() {
   try {
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
       const fileName = `${Date.now()}-${file.name}`;
       // Store in public/uploads directory
       try {
-        const fs = require('fs/promises');
+        // const fs = require('fs/promises');
         // Ensure directory exists
         await fs.mkdir('public/uploads', { recursive: true });
         await fs.writeFile(`public/uploads/${fileName}`, buffer);

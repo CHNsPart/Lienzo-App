@@ -1,7 +1,7 @@
 // app/api/support/tickets/[ticketId]/reschedule/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { SUPPORT_TICKET_STATUS } from "@/lib/constants/support";
 
 export async function POST(

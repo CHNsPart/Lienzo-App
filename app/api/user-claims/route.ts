@@ -1,8 +1,8 @@
 // app/api/user-claims/route.ts
 
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 import { Roles } from "@/lib/roles";
 
 export async function GET() {

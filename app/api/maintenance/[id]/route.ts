@@ -1,7 +1,7 @@
 // app/api/maintenance/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
 
 export async function GET(

@@ -1,7 +1,7 @@
 // app/license-requests/page.tsx
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { isAdminOrManager } from "@/lib/auth";
 import LicenseRequestList from "@/components/license-requests/LicenseRequestList";
 

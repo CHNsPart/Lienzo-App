@@ -1,7 +1,7 @@
 // app/api/support/tickets/[ticketId]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
 import { SUPPORT_TICKET_STATUS } from "@/lib/constants/support";
 import { TicketUpdateData } from "@/types/support";
