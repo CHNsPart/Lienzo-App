@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -20,55 +20,54 @@ model User {
   updatedAt       DateTime         @updatedAt
   licenseRequests LicenseRequest[]
   permissions     UserPermission[]
-
   supportTickets  TicketsOnUsers[]
 }
 
 model License {
-  id         String   @id @default(cuid())
-  key        String   @unique
-  product    Product  @relation(fields: [productId], references: [id])
+  id         String     @id @default(cuid())
+  key        String     @unique
+  product    Product    @relation(fields: [productId], references: [id])
   productId  String
-  owner      User     @relation(fields: [ownerId], references: [id])
+  owner      User       @relation(fields: [ownerId], references: [id])
   ownerId    String
-  status     String   @default("PENDING")
+  status     String     @default("PENDING")
   duration   Int
   version    String
   startDate  DateTime
   expiryDate DateTime
   deletedAt  DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
   request    LicenseRequest @relation(fields: [requestId], references: [id])
   requestId  String
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  name        String
-  description String
-  features    String
-  image       Bytes?
-  durations   String
-  versions    String
-  licenses    License[]
+  id              String           @id @default(cuid())
+  name            String
+  description     String
+  features        String
+  image           Bytes?
+  durations       String
+  versions        String
+  licenses        License[]
   licenseRequests LicenseRequest[]
 }
 
 model LicenseRequest {
-  id          String   @id @default(cuid())
-  user        User     @relation(fields: [userId], references: [id])
+  id          String     @id @default(cuid())
+  user        User       @relation(fields: [userId], references: [id])
   userId      String
-  product     Product  @relation(fields: [productId], references: [id])
+  product     Product    @relation(fields: [productId], references: [id])
   productId   String
   quantity    Int
   duration    Int
   message     String?
   companyName String
-  status      String   @default("PENDING")
-  version    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      String     @default("PENDING")
+  version     String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   licenses    License[]
 }
 
@@ -126,26 +125,26 @@ model Maintenance {
 }
 
 model InstructionDocument {
-  id          String   @id @default(cuid())
+  id          String               @id @default(cuid())
   title       String
   files       String   
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
   tickets     TicketsOnDocuments[]
 }
 
 model SupportTicket {
-  id              String    @id @default(cuid())
+  id              String              @id @default(cuid())
   customerName    String
   companyName     String
   companyAddress  String
   meetDate        DateTime
   meetTime        String
-  status          String    @default("OPEN")
+  status          String              @default("OPEN")
   documents       TicketsOnDocuments[]
   supportUsers    TicketsOnUsers[]
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
   rescheduledDate DateTime?
   rescheduledTime String?
 }

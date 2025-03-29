@@ -2,18 +2,18 @@
 
 import { NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { isAdminOrManager } from "@/lib/auth";
 
 export async function GET() {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-
-  if (!user || !(await isAdminOrManager(user))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
+    if (!user || !(await isAdminOrManager(user))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     // Get all active licenses with product information
     const licenses = await prisma.license.findMany({
       where: {
@@ -28,6 +28,11 @@ export async function GET() {
         }
       }
     });
+
+    // If no licenses found, return empty array
+    if (!licenses.length) {
+      return NextResponse.json([]);
+    }
 
     // Create a map to count versions per product
     const versionMap = new Map<string, number>();

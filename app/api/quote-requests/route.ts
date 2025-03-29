@@ -1,5 +1,6 @@
+// app/api/quote-requests/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { isAdmin } from "@/lib/auth";
 
@@ -27,19 +28,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(quoteRequest, { status: 201 });
   } catch (error) {
     console.error("Failed to create quote request:", error);
-    return NextResponse.json({ error: "Failed to create quote request" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Failed to create quote request",
+      details: error instanceof Error ? error.message : "Unknown error" 
+    }, { status: 500 });
   }
 }
 
 export async function GET(req: NextRequest) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-
-  if (!user || !(await isAdmin(user))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
+    if (!user || !(await isAdmin(user))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const quoteRequests = await prisma.quoteRequest.findMany({
       orderBy: { createdAt: 'desc' },
     });
@@ -47,6 +51,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(quoteRequests, { status: 200 });
   } catch (error) {
     console.error("Failed to fetch quote requests:", error);
-    return NextResponse.json({ error: "Failed to fetch quote requests" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Failed to fetch quote requests",
+      details: error instanceof Error ? error.message : "Unknown error"
+    }, { status: 500 });
   }
 }

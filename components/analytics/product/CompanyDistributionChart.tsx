@@ -1,5 +1,3 @@
-// components/analytics/product/CompanyDistributionChart.tsx
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
@@ -35,16 +33,18 @@ export function CompanyDistributionChart() {
         const result = await response.json();
         
         // Ensure result is an array
-        if (!Array.isArray(result)) {
-          throw new Error('Invalid data format received');
+        if (Array.isArray(result)) {
+          setData(result);
+          setError(null);
+        } else {
+          console.warn('API returned non-array data:', result);
+          setData([]);
+          setError('Invalid data format received');
         }
-        
-        setData(result);
-        setError(null);
       } catch (error) {
         console.error('Error fetching company distribution:', error);
         setError(error instanceof Error ? error.message : 'Failed to load data');
-        setData([]); // Reset data to empty array on error
+        setData([]);
       } finally {
         setIsLoading(false);
       }
@@ -65,7 +65,7 @@ export function CompanyDistributionChart() {
     );
   }
 
-  if (error || data.length === 0) {
+  if (error || !Array.isArray(data) || data.length === 0) {
     return (
       <Card className="col-span-8">
         <CardContent className="pt-6">
@@ -95,7 +95,7 @@ export function CompanyDistributionChart() {
   return (
     <Card className="col-span-8">
       <CardHeader>
-        <CardTitle></CardTitle>
+        <CardTitle>Company Distribution</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[400px]">

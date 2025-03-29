@@ -1,7 +1,7 @@
 // app/api/support/tickets/[ticketId]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
 import { SUPPORT_TICKET_STATUS } from "@/lib/constants/support";
 import { TicketUpdateData } from "@/types/support";
@@ -10,14 +10,14 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { ticketId: string } }
 ) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const ticket = await prisma.supportTicket.findUnique({
       where: { id: params.ticketId },
       include: {
@@ -58,7 +58,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching ticket:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch ticket' },
+      { error: 'Failed to fetch ticket', details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }
@@ -68,14 +68,14 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { ticketId: string } }
 ) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     // Fetch ticket to check permissions
     const existingTicket = await prisma.supportTicket.findUnique({
       where: { id: params.ticketId },
@@ -191,7 +191,7 @@ export async function PATCH(
   } catch (error) {
     console.error('Error updating ticket:', error);
     return NextResponse.json(
-      { error: 'Failed to update ticket' },
+      { error: 'Failed to update ticket', details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }
@@ -201,15 +201,15 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { ticketId: string } }
 ) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-
-  // Only admins can delete tickets
-  if (!user || !(await isAdmin(user))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
+    // Only admins can delete tickets
+    if (!user || !(await isAdmin(user))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     // Delete relationships first
     await prisma.ticketsOnDocuments.deleteMany({
       where: { ticketId: params.ticketId }
@@ -228,7 +228,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting ticket:', error);
     return NextResponse.json(
-      { error: 'Failed to delete ticket' },
+      { error: 'Failed to delete ticket', details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }

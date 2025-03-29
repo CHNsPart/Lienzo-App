@@ -1,22 +1,22 @@
+// app/api/licenses/bulk/[action]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { isAdminOrManager } from "@/lib/auth";
-import { BulkAction } from "@/types/license-management";
 import { LICENSE_STATUS } from "@/lib/constants";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { action: BulkAction } }
+  { params }: { params: { action: string } }
 ) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { licenseIds } = await req.json();
     const { action } = params;
     const isAdmin = await isAdminOrManager(user);
@@ -132,7 +132,7 @@ export async function POST(
   } catch (error) {
     console.error('Bulk action error:', error);
     return NextResponse.json(
-      { error: "Failed to perform bulk action" },
+      { error: "Failed to perform bulk action", details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }

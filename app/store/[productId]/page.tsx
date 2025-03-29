@@ -1,6 +1,6 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -17,15 +17,27 @@ import DeleteProductModal from "@/components/modals/DeleteProductModal";
 const EditProductModal = dynamic(() => import('@/components/modals/EditProductModal'), { ssr: false });
 
 async function getProduct(id: string): Promise<Product | null> {
-  return await prisma.product.findUnique({
-    where: { id },
-  });
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+    return product as Product | null;
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    return null;
+  }
 }
 
 async function getRecommendedProducts(): Promise<Product[]> {
-  return await prisma.product.findMany({
-    take: 3,
-  });
+  try {
+    const products = await prisma.product.findMany({
+      take: 3,
+    });
+    return products as Product[];
+  } catch (error) {
+    console.error("Error fetching recommended products:", error);
+    return [];
+  }
 }
 
 export default async function StoreProductPage({ params }: { params: { productId: string } }) {

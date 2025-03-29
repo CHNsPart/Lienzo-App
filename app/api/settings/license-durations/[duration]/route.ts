@@ -8,11 +8,23 @@ import { isAdmin } from "@/lib/auth";
 const dataFilePath = path.join(process.cwd(), 'data', 'licenseDurations.json');
 
 async function readDurations() {
-  const data = await fs.readFile(dataFilePath, 'utf-8');
-  return JSON.parse(data);
+  try {
+    const data = await fs.readFile(dataFilePath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    // Return default empty durations if file doesn't exist or is invalid
+    return { durations: [] };
+  }
 }
 
 async function writeDurations(durations: number[]) {
+  // Ensure the directory exists
+  try {
+    await fs.mkdir(path.dirname(dataFilePath), { recursive: true });
+  } catch (error) {
+    // Ignore if directory already exists
+  }
+  
   await fs.writeFile(dataFilePath, JSON.stringify({ durations }, null, 2));
 }
 

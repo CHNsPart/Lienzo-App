@@ -10,7 +10,7 @@ import { Roles } from "@/lib/roles";
 
 interface TicketCardProps {
   ticket: SupportTicketDetails;
-  onClick: (ticket: SupportTicketDetails) => void;
+  onClick?: (ticket: SupportTicketDetails) => void;
   userRole: string;
   userId: string;
 }
@@ -23,7 +23,7 @@ export default function TicketCard({
 }: TicketCardProps) {
 
   const isAssignedSupport = ticket.supportUsers.some(su => su.user.id === userId);
-  const canViewDetails = userRole === Roles.ADMIN || isAssignedSupport;
+  const canViewDetails = userRole === Roles.ADMIN || isAssignedSupport || userRole === Roles.USER;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -47,9 +47,9 @@ export default function TicketCard({
     <Card 
       className={cn(
         "hover:shadow-md transition-shadow duration-200",
-        canViewDetails && "cursor-pointer"
+        canViewDetails && onClick ? "cursor-pointer" : ""
       )}
-      onClick={() => canViewDetails && onClick(ticket)}
+      onClick={() => canViewDetails && onClick ? onClick(ticket) : undefined}
     >
       <CardContent className="p-6">
         {/* Header with customer info and status */}

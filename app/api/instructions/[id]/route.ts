@@ -1,6 +1,7 @@
+// app/api/instructions/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
 import fs from 'fs/promises';
 import path from 'path';
@@ -32,13 +33,17 @@ export async function DELETE(
     }
 
     // Delete associated files
-    const files = JSON.parse(document.files);
-    for (const fileName of files) {
-      try {
-        await fs.unlink(path.join(process.cwd(), 'public/uploads', fileName));
-      } catch (error) {
-        console.error(`Failed to delete file ${fileName}:`, error);
+    try {
+      const files = JSON.parse(document.files);
+      for (const fileName of files) {
+        try {
+          await fs.unlink(path.join(process.cwd(), 'public/uploads', fileName));
+        } catch (error) {
+          console.error(`Failed to delete file ${fileName}:`, error);
+        }
       }
+    } catch (error) {
+      console.error("Error parsing document files:", error);
     }
 
     // Delete document from database

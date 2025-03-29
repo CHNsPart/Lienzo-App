@@ -11,15 +11,29 @@ interface ProductRequest {
 export function MostRequestedProducts() {
   const [data, setData] = useState<ProductRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch('/api/analytics/products/most-requested');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch: ${response.status}`);
+        }
         const result = await response.json();
-        setData(result);
+        
+        // Ensure we have an array, even if empty
+        if (Array.isArray(result)) {
+          setData(result);
+        } else {
+          console.warn('API returned non-array data:', result);
+          setData([]);
+          setError('Invalid data format received');
+        }
       } catch (error) {
         console.error('Error fetching most requested products:', error);
+        setError(error instanceof Error ? error.message : 'Unknown error');
+        setData([]);
       } finally {
         setIsLoading(false);
       }
@@ -28,7 +42,11 @@ export function MostRequestedProducts() {
     fetchData();
   }, []);
 
+  // Safely calculate max count using guard clauses
   const maxCount = useMemo(() => {
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return 0;
+    }
     return Math.max(...data.map(item => item.requestCount));
   }, [data]);
 
@@ -44,10 +62,25 @@ export function MostRequestedProducts() {
     );
   }
   
+  if (error || !data || data.length === 0) {
+    return (
+      <Card className="col-span-4">
+        <CardHeader>
+          <CardTitle>Most Requested Products</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center items-center h-[300px] text-muted-foreground">
+            {error ? `Error: ${error}` : 'No data available'}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   return (
     <Card className="col-span-4">
       <CardHeader>
-        <CardTitle></CardTitle>
+        <CardTitle>Most Requested Products</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[300px]">

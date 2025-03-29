@@ -1,19 +1,68 @@
 // app/api/support/tickets/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
 import { SUPPORT_TICKET_STATUS } from "@/lib/constants/support";
 
-export async function GET() {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+// Function to auto-assign a support team member using load balancing
+async function autoAssignSupportMember(): Promise<string | null> {
   try {
+    // Get all support users
+    const supportUsers = await prisma.user.findMany({
+      where: { role: 'SUPPORT' },
+      select: { id: true }
+    });
+
+    if (supportUsers.length === 0) {
+      console.error("No support users found in the system");
+      return null;
+    }
+
+    // Count active tickets for each support user
+    const supportUserLoads = await Promise.all(
+      supportUsers.map(async (user) => {
+        const activeTicketsCount = await prisma.ticketsOnUsers.count({
+          where: { 
+            userId: user.id,
+            ticket: { 
+              status: { in: [SUPPORT_TICKET_STATUS.OPEN, SUPPORT_TICKET_STATUS.RESCHEDULED] } 
+            }
+          }
+        });
+        
+        return {
+          userId: user.id,
+          activeTicketsCount
+        };
+      })
+    );
+
+    // Sort by ticket count (ascending)
+    supportUserLoads.sort((a, b) => a.activeTicketsCount - b.activeTicketsCount);
+
+    // Find all users with the minimum load
+    const minLoad = supportUserLoads[0].activeTicketsCount;
+    const leastLoadedUsers = supportUserLoads.filter(user => user.activeTicketsCount === minLoad);
+
+    // Randomly select one of the least loaded users
+    const selectedUserIndex = Math.floor(Math.random() * leastLoadedUsers.length);
+    return leastLoadedUsers[selectedUserIndex].userId;
+  } catch (error) {
+    console.error("Error auto-assigning support member:", error);
+    return null;
+  }
+}
+
+export async function GET() {
+  try {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     // Get user from database to check role
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
@@ -50,6 +99,7 @@ export async function GET() {
 
     // If admin, get all tickets
     // If support user, only get assigned tickets
+    // If regular user, get only their tickets
     if (await isAdmin(user)) {
       tickets = await prisma.supportTicket.findMany({
         include: includeRelations,
@@ -68,29 +118,39 @@ export async function GET() {
         orderBy: { createdAt: 'desc' }
       });
     } else {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      // For regular users, find tickets where they are the customer
+      // This assumes customerName contains their full name
+      const fullName = `${user.given_name} ${user.family_name}`.trim();
+      
+      tickets = await prisma.supportTicket.findMany({
+        where: {
+          customerName: fullName
+        },
+        include: includeRelations,
+        orderBy: { createdAt: 'desc' }
+      });
     }
 
     return NextResponse.json(tickets);
   } catch (error) {
     console.error('Error fetching tickets:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch tickets' },
+      { error: 'Failed to fetch tickets', details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }
 }
 
 export async function POST(request: NextRequest) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-
-  // Only allow admins to create tickets
-  if (!user || !(await isAdmin(user))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
+    // All users can create tickets now, not just admins
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { 
       customerName, 
@@ -98,8 +158,8 @@ export async function POST(request: NextRequest) {
       companyAddress, 
       meetDate, 
       meetTime,
-      documentIds,  // Array of InstructionDocument IDs
-      supportUserIds  // Array of Support User IDs
+      documentIds,  // Optional now
+      supportUserIds  // Optional now
     } = body;
 
     // Validate required fields
@@ -110,33 +170,57 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate documents exist
-    if (documentIds?.length) {
+    const isAdminUser = await isAdmin(user);
+    
+    // If documentIds are provided (admin use case), validate they exist
+    let validatedDocumentIds: string[] = [];
+    if (isAdminUser && documentIds?.length) {
       const documents = await prisma.instructionDocument.findMany({
         where: { id: { in: documentIds } }
       });
+      
       if (documents.length !== documentIds.length) {
         return NextResponse.json(
           { error: "One or more documents not found" },
           { status: 400 }
         );
       }
+      
+      validatedDocumentIds = documentIds;
     }
 
-    // Validate support users exist and have SUPPORT role
-    if (supportUserIds?.length) {
+    // Determine support users based on who's creating the ticket
+    let validatedSupportUserIds: string[] = [];
+    
+    if (isAdminUser && supportUserIds?.length) {
+      // Admin provided specific support users
       const supportUsers = await prisma.user.findMany({
         where: { 
           id: { in: supportUserIds },
           role: 'SUPPORT'
         }
       });
+      
       if (supportUsers.length !== supportUserIds.length) {
         return NextResponse.json(
           { error: "One or more support users not found or invalid role" },
           { status: 400 }
         );
       }
+      
+      validatedSupportUserIds = supportUserIds;
+    } else {
+      // Auto-assign a support user
+      const autoAssignedUserId = await autoAssignSupportMember();
+      
+      if (!autoAssignedUserId) {
+        return NextResponse.json(
+          { error: "Failed to assign a support team member. Please try again." },
+          { status: 500 }
+        );
+      }
+      
+      validatedSupportUserIds = [autoAssignedUserId];
     }
 
     // Create ticket with relationships
@@ -148,17 +232,17 @@ export async function POST(request: NextRequest) {
         meetDate: new Date(meetDate),
         meetTime,
         status: SUPPORT_TICKET_STATUS.OPEN,
-        // Create document relationships
+        // Create document relationships if any
         documents: {
-          create: documentIds?.map((documentId: string) => ({
+          create: validatedDocumentIds.map((documentId: string) => ({
             documentId,
-          })) || []
+          }))
         },
         // Create support user relationships
         supportUsers: {
-          create: supportUserIds?.map((userId: string) => ({
+          create: validatedSupportUserIds.map((userId: string) => ({
             userId,
-          })) || []
+          }))
         }
       },
       include: {
@@ -187,22 +271,22 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating ticket:', error);
     return NextResponse.json(
-      { error: 'Failed to create ticket' },
+      { error: 'Failed to create ticket', details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }
 }
 
 export async function DELETE(request: NextRequest) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-
-  // Only allow admins to delete tickets
-  if (!user || !(await isAdmin(user))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
+    // Only allow admins to delete tickets
+    if (!user || !(await isAdmin(user))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await request.json();
 
     if (!id) {
@@ -230,7 +314,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Error deleting ticket:', error);
     return NextResponse.json(
-      { error: 'Failed to delete ticket' },
+      { error: 'Failed to delete ticket', details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }

@@ -1,33 +1,40 @@
-/* import { PrismaClient } from '@prisma/client'
+// import { PrismaClient } from '@prisma/client'
+// import { join } from 'path'
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient }
+// let prisma: PrismaClient
 
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient({
-    log: ['query'],
-  })
+// if (process.env.NODE_ENV === 'production') {
+//   prisma = new PrismaClient({
+//     datasources: {
+//       db: {
+//         url: `file:${join(process.cwd(), 'prisma', 'dev.db')}`,
+//       },
+//     },
+//   })
+// } else {
+//   if (!(global as any).prisma) {
+//     (global as any).prisma = new PrismaClient()
+//   }
+//   prisma = (global as any).prisma
+// }
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma */
+// export default prisma
 
-import { PrismaClient } from '@prisma/client'
-import { join } from 'path'
+import { PrismaClient } from '@prisma/client';
 
-let prisma: PrismaClient
+const prismaClientSingleton = () => {
+  return new PrismaClient({
+    log: ['query', 'error', 'warn'],
+  });
+};
 
-if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: `file:${join(process.cwd(), 'prisma', 'dev.db')}`,
-      },
-    },
-  })
-} else {
-  if (!(global as any).prisma) {
-    (global as any).prisma = new PrismaClient()
-  }
-  prisma = (global as any).prisma
+declare global {
+  /* eslint no-var: off */
+  var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
 }
 
-export default prisma
+const prisma = globalThis.prisma ?? prismaClientSingleton();
+
+export { prisma };
+
+if (process.env.NODE_ENV !== 'production') globalThis.prisma = prisma;

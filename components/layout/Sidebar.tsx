@@ -39,6 +39,7 @@ export default function Sidebar() {
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/licenses", label: "Licenses", icon: Key },
     { href: "/store", label: "Store", icon: Store },
+    { href: "/support", label: "Support", icon: Headset }
   ];
 
   // Admin-only links
@@ -50,9 +51,9 @@ export default function Sidebar() {
   ];
 
   // Support link
-  const supportLink = [
-    { href: "/support", label: "Support", icon: Headset }
-  ];
+  // const supportLink = [
+  //   { href: "/support", label: "Support", icon: Headset }
+  // ];
 
   // Determine which links to show based on role
   let links = [...baseLinks];
@@ -61,9 +62,9 @@ export default function Sidebar() {
     links = [...baseLinks, ...adminLinks];
   }
 
-  if (userRole === Roles.ADMIN || userRole === Roles.SUPPORT) {
-    links = [...links, ...supportLink];
-  }
+  // if (userRole === Roles.ADMIN || userRole === Roles.SUPPORT) {
+  //   links = [...links, ...supportLink];
+  // }
 
   return (
     <aside className="bg-[#F9F9F9] border-r text-black w-64 min-h-screen p-4">

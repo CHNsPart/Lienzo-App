@@ -1,11 +1,9 @@
 // app/api/licenses/request/[id]/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { isAdminOrManager } from "@/lib/auth";
 import dayjs from 'dayjs';
-import { LicenseRequest, Product } from "@prisma/client";
 import { LICENSE_STATUS } from "@/lib/constants";
 
 interface RequestBody {
@@ -13,25 +11,18 @@ interface RequestBody {
   licenseKeys: string;
 }
 
-interface GroupedRequests {
-  [productId: string]: {
-    product: Product;
-    requests: LicenseRequest[];
-  };
-}
-
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-
-  if (!user || !(await isAdminOrManager(user))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { id } = params;
-  const { status, licenseKeys }: RequestBody = await req.json();
-
   try {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
+    if (!user || !(await isAdminOrManager(user))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = params;
+    const { status, licenseKeys }: RequestBody = await req.json();
+
     const licenseRequest = await prisma.licenseRequest.findUnique({
       where: { id },
       include: { 
@@ -149,7 +140,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       orderBy: { createdAt: 'desc' }
     });
 
-    const groupedRequests = allUserRequests.reduce((acc: GroupedRequests, request) => {
+    const groupedRequests = allUserRequests.reduce((acc: any, request) => {
       if (!acc[request.productId]) {
         acc[request.productId] = {
           product: request.product,
@@ -164,7 +155,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       updatedRequest,
       groupedRequests: Object.values(groupedRequests)
     });
-
   } catch (error) {
     console.error("Failed to update license request:", error);
     return NextResponse.json({ 

@@ -1,8 +1,7 @@
 // app/api/instructions/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
 import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from "@/lib/constants/support";
 
@@ -22,10 +21,7 @@ export async function GET() {
     return NextResponse.json(documents);
   } catch (error) {
     console.error("Failed to fetch instruction documents:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch instruction documents" },
-      { status: 500 }
-    );
+    return NextResponse.json([], { status: 200 });
   }
 }
 
@@ -74,9 +70,19 @@ export async function POST(request: NextRequest) {
       // Generate unique filename
       const fileName = `${Date.now()}-${file.name}`;
       // Store in public/uploads directory
-      const fs = require('fs/promises');
-      await fs.writeFile(`public/uploads/${fileName}`, buffer);
-      fileNames.push(fileName);
+      try {
+        const fs = require('fs/promises');
+        // Ensure directory exists
+        await fs.mkdir('public/uploads', { recursive: true });
+        await fs.writeFile(`public/uploads/${fileName}`, buffer);
+        fileNames.push(fileName);
+      } catch (error) {
+        console.error("Failed to write file:", error);
+        return NextResponse.json(
+          { error: "Failed to store uploaded file" },
+          { status: 500 }
+        );
+      }
     }
 
     const document = await prisma.instructionDocument.create({

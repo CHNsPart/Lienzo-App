@@ -1,39 +1,73 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
-import prisma from "@/lib/prisma";
-import { License, LicenseRequest, Product, User } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { LicenseRequest, User } from "@prisma/client";
 import { isAdminOrManager } from "@/lib/auth";
 import { UserDashboard } from "@/components/dashboardViews/UserDashboard";
 import { AdminDashboard } from "@/components/dashboardViews/AdminDashboard";
 import { LicenseWithDetails } from "@/types/license-management";
 
 
-type LicenseWithProduct = License & { product: Product };
 
+
+// async function syncUser(kindeUser: any): Promise<User | null> {
+//   const existingUser = await prisma.user.findUnique({
+//     where: { email: kindeUser.email },
+//   });
+
+//   if (!existingUser) {
+//     return prisma.user.create({
+//       data: {
+//         id: kindeUser.id,
+//         email: kindeUser.email || '',
+//         firstName: kindeUser.given_name || 'Unknown',
+//         lastName: kindeUser.family_name || 'User',
+//         role: 'USER',
+//       },
+//     });
+//   } else {
+//     return prisma.user.update({
+//       where: { email: kindeUser.email },
+//       data: {
+//         firstName: kindeUser.given_name || existingUser.firstName,
+//         lastName: kindeUser.family_name || existingUser.lastName,
+//       },
+//     });
+//   }
+// }
 
 async function syncUser(kindeUser: any): Promise<User | null> {
-  const existingUser = await prisma.user.findUnique({
-    where: { email: kindeUser.email },
-  });
+  if (!kindeUser || !kindeUser.email) {
+    return null;
+  }
 
-  if (!existingUser) {
-    return prisma.user.create({
-      data: {
-        id: kindeUser.id,
-        email: kindeUser.email || '',
-        firstName: kindeUser.given_name || 'Unknown',
-        lastName: kindeUser.family_name || 'User',
-        role: 'USER',
-      },
-    });
-  } else {
-    return prisma.user.update({
+  try {
+    const existingUser = await prisma.user.findUnique({
       where: { email: kindeUser.email },
-      data: {
-        firstName: kindeUser.given_name || existingUser.firstName,
-        lastName: kindeUser.family_name || existingUser.lastName,
-      },
     });
+
+    if (!existingUser) {
+      return await prisma.user.create({
+        data: {
+          id: kindeUser.id,
+          email: kindeUser.email || '',
+          firstName: kindeUser.given_name || 'Unknown',
+          lastName: kindeUser.family_name || 'User',
+          role: kindeUser.email === 'imchn24@gmail.com' ? 'ADMIN' : 'USER',
+        },
+      });
+    } else {
+      return await prisma.user.update({
+        where: { email: kindeUser.email },
+        data: {
+          firstName: kindeUser.given_name || existingUser.firstName,
+          lastName: kindeUser.family_name || existingUser.lastName,
+        },
+      });
+    }
+  } catch (error) {
+    console.error('Error syncing user:', error);
+    return null;
   }
 }
 

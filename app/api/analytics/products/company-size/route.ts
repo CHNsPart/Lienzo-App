@@ -2,18 +2,18 @@
 
 import { NextResponse } from "next/server";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { isAdminOrManager } from "@/lib/auth";
 
 export async function GET() {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-
-  if (!user || !(await isAdminOrManager(user))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+
+    if (!user || !(await isAdminOrManager(user))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const requests = await prisma.licenseRequest.findMany({
       select: {
         companyName: true,
@@ -25,6 +25,11 @@ export async function GET() {
         }
       }
     });
+
+    // If no requests found, return empty array
+    if (!requests.length) {
+      return NextResponse.json([]);
+    }
 
     // Create a map for company analytics
     const companyMap = new Map<string, {
@@ -55,6 +60,7 @@ export async function GET() {
     const formattedData = Array.from(companyMap.values())
       .map(company => ({
         name: company.companyName,
+        size: 'medium', // Default size if not specified
         licenses: company.totalLicenses,
         products: company.products.size,
         score: (company.totalLicenses * 0.6) + (company.products.size * 0.4) // Weighted score

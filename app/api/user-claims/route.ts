@@ -1,18 +1,21 @@
+// app/api/user-claims/route.ts
+
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { Roles } from "@/lib/roles";
 
 export async function GET() {
-  const { getUser } = getKindeServerSession();
-  const kindeUser = await getUser();
-
-  if (!kindeUser || !kindeUser.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const { getUser } = getKindeServerSession();
+    const kindeUser = await getUser();
+
+    if (!kindeUser || !kindeUser.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     // Fetch user from local database
-    const dbUser = await prisma.user.findUnique({
+    let dbUser = await prisma.user.findUnique({
       where: { id: kindeUser.id },
       select: { 
         id: true,
@@ -23,15 +26,44 @@ export async function GET() {
       }
     });
 
-    if (!dbUser) {
-      // If user doesn't exist in local DB, you might want to create one
-      // For now, we'll just return an error
-      return NextResponse.json({ error: "User not found in local database" }, { status: 404 });
+    // If user doesn't exist and this is the admin email, create them
+    if (!dbUser && kindeUser.email === 'imchn24@gmail.com') {
+      dbUser = await prisma.user.create({
+        data: {
+          id: kindeUser.id,
+          email: kindeUser.email,
+          firstName: kindeUser.given_name || 'Admin',
+          lastName: kindeUser.family_name || 'User',
+          role: Roles.ADMIN
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true, 
+          lastName: true,
+          role: true
+        }
+      });
+    } 
+    // If user doesn't exist, create with USER role
+    else if (!dbUser) {
+      dbUser = await prisma.user.create({
+        data: {
+          id: kindeUser.id,
+          email: kindeUser.email || '',
+          firstName: kindeUser.given_name || 'Unknown',
+          lastName: kindeUser.family_name || 'User',
+          role: Roles.USER
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true
+        }
+      });
     }
-
-    console.log("___ROLE___", dbUser.role);
-    console.log("___EMAIL___", dbUser.email);
-    console.log("___USER___", dbUser);
 
     return NextResponse.json({
       id: dbUser.id,
@@ -42,6 +74,9 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Error fetching user data:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : "Unknown error" 
+    }, { status: 500 });
   }
 }

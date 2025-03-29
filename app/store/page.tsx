@@ -1,7 +1,8 @@
+// app/store/page.tsx
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { isAdmin } from "@/lib/auth";
@@ -9,12 +10,17 @@ import { PhoneCall } from 'lucide-react';
 import ProductCard from "@/components/store/ProductCard";
 
 async function getProducts() {
-  return await prisma.product.findMany();
+  try {
+    return await prisma.product.findMany();
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return []; // Return empty array instead of throwing error
+  }
 }
 
 export default async function StorePage() {
   const { getUser } = getKindeServerSession();
-  const user:any = await getUser();
+  const user: any = await getUser();
 
   if (!user) {
     redirect("/api/auth/login");
@@ -49,21 +55,39 @@ export default async function StorePage() {
         )}
       </div>
 
-
       <h2 className="text-2xl font-semibold mb-4">Business Choice</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 mb-8">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
+        {products && products.length > 0 ? (
+          products.map((product) => (
+            <ProductCard 
+              key={product.id} 
+              product={{
+                ...product,
+                image: product.image ? Buffer.from(product.image) : null
+              }}
+            />
+          ))
+        ) : (
+          <p className="col-span-full text-center text-gray-500">No products available yet.</p>
+        )}
       </div>
 
       <h2 className="text-2xl font-semibold mb-4">Market Fresh</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-        {products.slice(0, 3).map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
+        {products && products.length > 0 ? (
+          products.slice(0, 3).map((product) => (
+            <ProductCard 
+              key={product.id} 
+              product={{
+                ...product,
+                image: product.image ? Buffer.from(product.image) : null
+              }}
+            />
+          ))
+        ) : (
+          <p className="col-span-full text-center text-gray-500">No products available yet.</p>
+        )}
       </div>
-
     </div>
   );
 }
